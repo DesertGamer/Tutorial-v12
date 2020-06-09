@@ -1,19 +1,9 @@
 const discord = require("discord.js");
 const fs = require("fs");
 const bot = new discord.Client();
-const { Client } = require('pg');
 const botconfig = require("./botconfig.json");
 const moment = require("moment");
 const ms = require('parse-ms');
-
-bot.commands = new discord.Collection();
-bot.aliases = new discord.Collection();
-cooldowns = new discord.Collection();
-
-fs.readdir("./events/", (err, files) => {files.forEach(file => {if (file.split(".").slice(-1)[0] !== "js") return;const event = require(`./events/${file}`);const eventName = file.split(" ")[0];const eName = file.split(" ")[1];console.log(`[ИВЕНТЫ] Ивент ${eventName + " " + eName} был успешно загружен!`);bot.on(eventName, event.bind(null, bot, con));});});
-
-const con = new Client({user: `${botconfig.user}`,host: `${botconfig.ip}`,database: `${botconfig.database}`,password: `${botconfig.password}`,})
-con.connect(err => {if (err) throw err; console.log(`[DATABASE] Подключение к базе данных успешно выполнено!`) })
 
 bot.on("messageReactionAdd", async (messageReaction, user) => {
   let message = messageReaction.message;
@@ -36,10 +26,5 @@ bot.on("messageReactionRemove", async (messageReaction, user) => {
     member.roles.remove(`694748513371816009`)
   }
 })
-
-bot.on("message", async message => {
-  if (message.author.bot) return;//Если автор другой бот - нет.
-  if (message.channel.type == "dm") return;//Если команда в личку - нет.
-});
 
 bot.login(botconfig.tokendcd)
