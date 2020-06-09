@@ -4,7 +4,7 @@ module.exports = async (bot, con) => {
   if (channel) {
     const fetchedChannels = [channel];
     fetchedChannels.forEach(c => {
-      c.messages.fetch(`719470053216485407`).then(collected => console.log(`[DEBUG] Найдено ${collected.size} сообщений в ${c.name}`))
+      c.messages.fetch(`719470053216485407`).then(collected => console.log(`[DEBUG] Найдено сообщение в ${c.name}`))
     })
   }
 };
