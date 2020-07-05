@@ -10,7 +10,6 @@ module.exports = {
   cooldown: 15000,
   run: async (bot, message, args, con) => {
         message.delete();
-        if(message.channel.id != "701686541872922736") return;
         var reportUser = message.guild.member(message.mentions.users.first() || message.guild.member(args[0]));
         if(!reportUser) return message.reply(`Вы не указали пользователя!`);
         var reason = args.slice(1).join(" ");
