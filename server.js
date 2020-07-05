@@ -1,9 +1,28 @@
 const discord = require("discord.js");
 const fs = require("fs");
 const bot = new discord.Client();
-const botconfig = require("./botconfig.json");
+const { Client } = require('pg');
+const botconfig = require("../botconfig.json");
 const moment = require("moment");
 const ms = require('parse-ms');
+
+bot.commands = new discord.Collection();
+bot.aliases = new discord.Collection();
+cooldowns = new discord.Collection();
+
+bot.categories = fs.readdirSync("./commands/");
+
+["command"].forEach(handler => {require(`./DcdHandler/${handler}`)(bot);});
+
+bot.on("ready", async() => {
+  const channel = bot.channels.cache.get(`701667050694639727`);
+  if (channel) {
+    const fetchedChannels = [channel];
+    fetchedChannels.forEach(c => {
+      c.messages.fetch(`725295846387613788`);
+    })
+  }
+})
 
 bot.on("messageReactionAdd", async (messageReaction, user) => {
   let message = messageReaction.message;
@@ -47,7 +66,6 @@ bot.on("message", async (message) => {
   if (message.guild.id != "694748513371816008") return;//Проверяем сервер
   let channelidea = bot.channels.cache.get(`701683705508266014`)
   if(message.channel.id === channelidea.id){
-    if(message.author.id === "297577892156669954") return;
     message.delete();//Удаляем сообщение
     let embed = new discord.MessageEmbed()
     .setTitle(`Идея от ${message.author.tag}`)
@@ -59,6 +77,17 @@ bot.on("message", async (message) => {
       await msg.react("👍");
       await msg.react("👎");
     });
+  }
+  let prefix = `/`;
+  if (!message.content.startsWith(prefix)) return;
+  if (!message.member) message.member = await message.guild.fetchMember(message);
+  const args = message.content.slice(prefix.length).trim().split(/ +/g);
+  const cmd = args.shift().toLowerCase();
+  if (cmd.length === 0) return;
+  let command = bot.commands.get(cmd);
+  if (!command) command = bot.commands.get(bot.aliases.get(cmd));
+  if (command) {
+    command.run(bot, message, args);
   }
 });
 
