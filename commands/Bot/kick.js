@@ -29,7 +29,7 @@ module.exports = {
         .setTimestamp();
         if(kickUser.user.bot === true) return message.channel.send(`Нельзя кикнуть бота`);//Проверка на бота
         await kickUser.send(embeddm);
-        // await message.guild.member(kickUser).kick(reason);
+        await message.guild.member(kickUser).kick(reason);
         await reportchan.send(embed);
     }
 }
