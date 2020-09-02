@@ -4,17 +4,48 @@ const bot = new discord.Client();
 const { Client } = require('pg');
 const botconfig = require("../botconfig.json");
 const moment = require("moment");
-const ms = require('parse-ms');
+const ms = require("ms");
 
 bot.commands = new discord.Collection();
 bot.aliases = new discord.Collection();
 cooldowns = new discord.Collection();
+
+const con = new Client({
+  user: `${botconfig.user}`,
+  host: `${botconfig.ip}`,
+  database: `${botconfig.database}`,
+  password: `${botconfig.password}`,
+})
+con.connect(err => {
+  if (err) throw err; 
+  console.log(`[DATABASE] Подключение к базе данных успешно выполнено!`);
+})
 
 bot.categories = fs.readdirSync("./commands/");
 
 ["command"].forEach(handler => {require(`./DcdHandler/${handler}`)(bot);});
 
 bot.on("ready", async() => {
+  console.log(`[READY] Бот успешно запущен!`);
+  setInterval(async() => {
+    let guild = bot.guilds.cache.get(`694748513371816008`);
+    con.query(`SELECT * FROM \"Bans\"`, async (err, result) => {
+      if (err) {
+        return;
+    } else if (result.rowCount == 0) {
+        return;
+    }
+    for (var i in result.rows) {
+      let timeout = result.rows[i].timemute;
+      let curtime = result.rows[i].curtime;
+      let userid = result.rows[i].discord_id;
+      if (curtime !== null && timeout - (Date.now() - curtime) > 0) return;
+      guild.members.unban(userid, 'Истёк срок блокировки');
+      con.query(`DELETE FROM \"Bans\" WHERE discord_id = \'${userid}\'`)
+      console.log(`[SYSTEM] Пользователь ${userid} был разблокирован. Срок бана истёк!`);
+    }
+    })
+  }, 60000)
   const channel = bot.channels.cache.get(`701667050694639727`);
   if (channel) {
     const fetchedChannels = [channel];
@@ -88,7 +119,7 @@ bot.on("message", async (message) => {
   let command = bot.commands.get(cmd);
   if (!command) command = bot.commands.get(bot.aliases.get(cmd));
   if (command) {
-    command.run(bot, message, args);
+    command.run(bot, message, args, con);
   }
 });
 
